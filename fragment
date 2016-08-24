@@ -1,0 +1,30 @@
+Button b;
+    FragmentManager fragmentManager;
+    Fragment fragment;
+    FragmentTransaction ft;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        b = (Button)findViewById(R.id.button);
+
+        fragmentManager = getSupportFragmentManager();
+        ft = fragmentManager.beginTransaction();
+        fragment = new FragmentA();
+        ft.add(R.id.frament,fragment);
+        ft.commit();
+    }
+
+    public void cambiaFragment(View view){
+        switch (view.getId()){
+            case R.id.button:
+
+                ft = fragmentManager.beginTransaction();
+                fragment = new FragmentB();
+                ft.replace(R.id.frament,fragment);
+                ft.addToBackStack(null);
+                ft.commit();
+                break;
+        }
+    }
