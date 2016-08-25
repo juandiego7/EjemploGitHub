@@ -1,0 +1,151 @@
+package co.edu.udea.compumovil.gr08.spaceWar;
+
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+public class CampaignActivity extends AppCompatActivity implements SensorEventListener{
+
+    private SensorManager sm;
+    private Sensor sensor;
+    private ObjectAnimator animX, animY;
+    private ImageView imgNave, imgMeteorito;
+    private static ImageView imMet;
+    private static RelativeLayout relativeLayout;
+    private float posX, posY;
+    private static int cant=0;
+    private static MyThread myHilo;
+    private static boolean control = true;
+    private Button meteoritos;
+    private static ImageView listMeteoritos[];
+    private static int[] tam = {5, 25, 50, 75, 100};
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_campaign);
+
+        meteoritos = new Button(this);
+
+        imgNave = (ImageView)findViewById(R.id.imageView);
+        //imgMeteorito = (ImageView) findViewById(R.id.imageView11);
+
+        relativeLayout = (RelativeLayout)findViewById(R.id.relative);
+
+        sm = (SensorManager)getSystemService(SENSOR_SERVICE);
+        sensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+
+        listMeteoritos = new ImageView[5];
+        imMet = new ImageView(this);
+        imMet.setImageResource(R.drawable.m3);
+
+        myHilo = new MyThread(listMeteoritos);
+        new Thread(myHilo).start();
+
+    }
+
+
+    public static void creeVista(){
+        if (control){
+            imMet.setImageResource(R.drawable.m2);
+            listMeteoritos[cant] = imMet;
+            relativeLayout.addView(imMet);
+            myHilo.setOb(listMeteoritos);
+            control = false;
+        }
+        /*int tamX = relativeLayout.getWidth();
+        //Log.d("TAG", "Tamaño: "+tamX);
+        int posImage = (int)Math.random()*tamX;
+        imMet.setImageResource(R.drawable.m);
+        //imMet.setX((float)posImage);
+        listMeteoritos[cant] = imMet;
+        relativeLayout.setR
+        relativeLayout.addView(imMet, posImage);
+        cant++;
+        myHilo.setOb(listMeteoritos);*/
+    }
+
+    /*public static void avance(ImageView[] imMet){
+        for (int i = 0; i<= cant; i++){
+            imMet[i].setY(imMet[i].getY() + 1);
+
+        }
+    }*/
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        float x, y, z, naveHeigth,naveWidth,relativeHeigth,relativeWidth;
+        x = sensorEvent.values[0]*15;
+        y = sensorEvent.values[1]*15;
+
+        naveHeigth = imgNave.getHeight();
+        naveWidth = imgNave.getWidth();
+        relativeHeigth = relativeLayout.getHeight();
+        relativeWidth = relativeLayout.getWidth();
+
+
+        if (x>0&&y<0){//izquierda-arriba
+            if (imgNave.getX()-x>=0){
+                imgNave.setX(imgNave.getX()-x);
+            }
+            if (imgNave.getY()+y>=0){
+                imgNave.setY(imgNave.getY()+y);
+            }
+        }else if (x<0&&y<0){//derecha-arriba
+            if (imgNave.getX() - x + naveWidth <= relativeWidth){
+                imgNave.setX(imgNave.getX()-x);
+            }
+            if (imgNave.getY()+y>=0){
+                imgNave.setY(imgNave.getY()+y);
+            }
+        }else if (x>0&&y>0){//izquierda-abajo
+            if (imgNave.getX()-x>=0){
+                imgNave.setX(imgNave.getX()-x);
+            }
+            if (imgNave.getY()+ y + naveHeigth <= relativeHeigth){
+                imgNave.setY(imgNave.getY()+y);
+            }
+        }else if (x<0&&y>0){//derecha-abajo
+            if (imgNave.getX() - x + naveWidth <= relativeWidth){
+                imgNave.setX(imgNave.getX()-x);
+            }
+            if (imgNave.getY() + y + naveHeigth<= relativeHeigth){
+                imgNave.setY(imgNave.getY()+y);
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sm.unregisterListener(this);
+    }
+}
