@@ -1,0 +1,225 @@
+package co.edu.udea.compumovil.gr08.lab3weather;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Picture;
+import android.graphics.Rect;
+import android.media.Image;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.v7.app.AppCompatActivity;
+import android.text.format.Time;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.squareup.picasso.Picasso;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class MainActivity extends AppCompatActivity {
+    final String HUMEDAD = "humidity";
+    final String WEATHER = "weather";
+    final String TEMPERATURA = "temp";
+    final String DESCRIPCION = "description";
+    final String ICON = "icon";
+    final String MAIN = "main";
+
+    TextView tvTempertaura;
+    TextView tvHumedad;
+    TextView tvDescripcion;
+    ImageView ivIcono;
+    TextView tvUltimaVisualizacion;
+    TextView city;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        tvTempertaura = (TextView)findViewById(R.id.tvTemperatura);
+        tvHumedad = (TextView)findViewById(R.id.tvHumedad);
+        tvDescripcion = (TextView)findViewById(R.id.tvDescripcion);
+        ivIcono = (ImageView) findViewById(R.id.ivIcono);
+        tvUltimaVisualizacion = (TextView)findViewById(R.id.tvUltimaVisualizacion);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_settings) {
+            FetchWeatherTask weatherTask = new FetchWeatherTask();
+            weatherTask.execute("colombia");
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[] >{
+
+        private String getReadableDateString(long time){
+            // Because the API returns a unix timestamp (measured in seconds),
+            // it must be converted to milliseconds in order to be converted to valid date.
+            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
+            return shortenedDateFormat.format(time);
+        }
+
+        private String formatHighLows(double high, double low) {
+            // For presentation, assume the user doesn't care about tenths of a degree.
+            long roundedHigh = Math.round(high);
+            long roundedLow = Math.round(low);
+
+            String highLowStr = roundedHigh + "/" + roundedLow;
+            return highLowStr;
+        }
+
+        private String[] getWeatherDataFromJson(String climaJson)
+                throws JSONException {
+            String resultado[] = new String[5];
+            JSONObject json = new JSONObject(climaJson);
+            JSONObject mainArray = json.getJSONObject(MAIN);
+            JSONObject weatherArray = json.getJSONArray(WEATHER).getJSONObject(0);
+
+            String temperatura = mainArray.getString(TEMPERATURA);
+            String humedad = mainArray.getString(HUMEDAD);
+            String descrpcion = weatherArray.getString(DESCRIPCION);
+            String icon = weatherArray.getString(ICON);
+            String fecha = json.getInt("dt")+"";
+
+
+            Time dayTime = new Time();
+            dayTime.setToNow();
+
+            int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
+
+            dayTime = new Time();
+
+                // For now, using the format "Day, description, hi/low"
+                String day;
+                long dateTime;
+                // Cheating to convert this to UTC time, which is what we want anyhow
+                dateTime = dayTime.setJulianDay(julianStartDay);
+                day = getReadableDateString(dateTime);
+            //fecha = day;
+            SimpleDateFormat s = new SimpleDateFormat("dd-MM-yyyy-hh:mm:ss");
+            String format = s.format(new Date());
+            Log.d("paso", format);
+            resultado[0]=temperatura;
+            resultado[1]=humedad;
+            resultado[2]=descrpcion;
+            resultado[3]=icon;
+            resultado[4]=fecha;
+
+
+            return resultado;
+
+        }
+
+        @Override
+        protected String[] doInBackground(String... params) {
+            // These two need to be declared outside the try/catch
+            // so that they can be closed in the finally block.
+
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+            int numDays = 7;
+
+            // Will contain the raw JSON response as a string.
+            String forecastJsonStr = null;
+
+            try {
+                String baseUrl = "http://api.openweathermap.org/data/2.5/weather?";
+                String idCity = "q="+ params[0];
+                String apiKey = "&APPID=" + "7dfaaf35bd351e5049b4cb542ce2ebd6";
+
+
+                //URL url = new URL("http://api.openweathermap.org/data/2.5/weather?q=Colombia&appid=7dfaaf35bd351e5049b4cb542ce2ebd6");
+                //URL url = new URL("http://api.openweathermap.org/data/2.5/weather?id=519188&appid=7dfaaf35bd351e5049b4cb542ce2ebd6");
+                URL url = new URL(baseUrl.concat(idCity.concat(apiKey)));
+
+                // Create the request to OpenWeatherMap, and open the connection
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                    // But it does make debugging a *lot* easier if you print out the completed
+                    // buffer for debugging.
+                    buffer.append(line + "\n");
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return null;
+                }
+                forecastJsonStr = buffer.toString();
+            } catch (IOException e) {
+
+                return null;
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+
+                    }
+                }
+            }
+            try {
+                return getWeatherDataFromJson(forecastJsonStr);
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result[]) {
+            if (result != null) {
+                tvTempertaura.setText(result[0]+"°");
+                tvHumedad.setText("humedad: " + result[1]);
+                tvDescripcion.setText(result[2]);
+                //Picasso.with(getApplicationContext()).load("http://openweathermap.org/img/w/"+result[3]+".png").into(ivIcono);
+                tvUltimaVisualizacion.setText("ultima visualizacion: "+result[4]);
+            }
+        }
+
+    }
+
+}
+
