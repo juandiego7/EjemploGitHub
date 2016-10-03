@@ -1,0 +1,251 @@
+package co.edu.udea.compumovil.gr08.spaceWar;
+
+import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
+import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
+import com.facebook.share.model.GameRequestContent;
+import com.facebook.share.widget.GameRequestDialog;
+
+
+
+
+public class InicioActivity extends AppCompatActivity implements View.OnClickListener{
+
+    ImageButton btnPlay;
+    ImageButton btnFacebook;
+    ImageButton imgSonido;
+    ImageButton imgMusica;
+    ImageButton imgStarts;
+    ImageButton imgSugerencia;
+    ImageView imgNave;
+    TextView tvNombre;
+    ImageView ivFoto;
+    Button btnScore;
+    DownloadImage downloadImage;
+    MediaPlayer mpClick;
+    Profile profile;
+
+    private CallbackManager callbackManager;
+    private AccessTokenTracker accessTokenTracker;
+    private ProfileTracker profileTracker;
+
+    //Facebook login button
+    private FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
+        @Override
+        public void onSuccess(LoginResult loginResult) {
+            profile = Profile.getCurrentProfile();
+            //finish();
+            nextActivity(profile);
+        }
+        @Override
+        public void onCancel() {
+        }
+        @Override
+        public void onError(FacebookException e) {
+        }
+    };
+
+    LoginButton loginButton;
+    Intent intent;
+    boolean sonido;
+    boolean musica;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        FacebookSdk.sdkInitialize(this);
+        AppEventsLogger.activateApp(this);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_inicio);
+
+        callbackManager = CallbackManager.Factory.create();
+        accessTokenTracker = new AccessTokenTracker() {
+            @Override
+            protected void onCurrentAccessTokenChanged(AccessToken oldToken, AccessToken newToken) {
+            }
+        };
+
+        profileTracker = new ProfileTracker() {
+            @Override
+            protected void onCurrentProfileChanged(Profile oldProfile, Profile newProfile) {
+                nextActivity(newProfile);
+            }
+        };
+        accessTokenTracker.startTracking();
+        profileTracker.startTracking();
+
+        LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
+        callback = new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                AccessToken accessToken = loginResult.getAccessToken();
+                profile = Profile.getCurrentProfile();
+                //These two lines below are needed to fix an error at login
+                finish();
+                nextActivity(profile);
+                Toast.makeText(getApplicationContext(), "Logging in...", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancel() {
+            }
+
+            @Override
+            public void onError(FacebookException e) {
+            }
+        };
+//about permissions https://developers.facebook.com/docs/facebook-login/permissions
+        //loginButton.setReadPermissions("publish_actions");
+        loginButton.registerCallback(callbackManager, callback);
+
+        btnPlay = (ImageButton)findViewById(R.id.imgPlay);
+        btnFacebook = (ImageButton)findViewById(R.id.imgFacebook);
+        imgSonido = (ImageButton)findViewById(R.id.imgSonido);
+        imgMusica = (ImageButton)findViewById(R.id.imgMusica);
+        imgStarts = (ImageButton)findViewById(R.id.imgStarts);
+        imgSugerencia = (ImageButton)findViewById(R.id.imgSugerencia);
+        imgNave = (ImageView)findViewById(R.id.imgNave);
+        tvNombre = (TextView)findViewById(R.id.tvNombre);
+        ivFoto = (ImageView)findViewById(R.id.ivFoto);
+        downloadImage = new DownloadImage(ivFoto);
+        mpClick = MediaPlayer.create(this,R.raw.breaker_switch1);
+        btnScore = (Button)findViewById(R.id.btnScore);
+        sonido = true;
+        musica = true;
+
+        Animation animation = AnimationUtils.loadAnimation(this,R.anim.translate);
+        imgNave.startAnimation(animation);
+
+        btnScore.setOnClickListener(this);
+        btnPlay.setOnClickListener(this);
+        btnFacebook.setOnClickListener(this);
+        imgMusica.setOnClickListener(this);
+        imgSonido.setOnClickListener(this);
+        imgStarts.setOnClickListener(this);
+        imgSugerencia.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (sonido){
+            mpClick.start();
+        }
+        switch (view.getId()){
+            case R.id.imgPlay:
+                intent = new Intent(this,ModoActivity.class);
+                intent.putExtra("sonido",sonido);
+                intent.putExtra("musica",musica);
+                startActivity(intent);
+                break;
+            case R.id.imgFacebook:
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                //intent.putExtra(Intent.EXTRA_TEXT, "invitar a tus amigos");
+                intent.setPackage("com.facebook.katana");
+                startActivity(intent);
+                break;
+            case R.id.imgStarts:
+                intent = new Intent(this,TiendaActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.imgSugerencia:
+                intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setData(Uri.parse("mailto:jdiego7118@gmail.com"));
+                startActivity(intent);
+                break;
+            case R.id.imgSonido:
+                if (sonido){
+                    imgSonido.setImageDrawable(getResources().getDrawable(R.drawable.volume_off));
+                }else{
+                    imgSonido.setImageDrawable(getResources().getDrawable(R.drawable.volume_high));
+                }
+                sonido = !sonido;
+                break;
+            case R.id.imgMusica:
+                if (musica){
+                    imgMusica.setImageDrawable(getResources().getDrawable(R.drawable.music_note_off));
+                }else{
+                    imgMusica.setImageDrawable(getResources().getDrawable(R.drawable.music_note));
+                }
+                musica = !musica;
+                break;
+            case R.id.btnScore:
+                Bundle params = new Bundle();
+                params.putString("achievement", "https://developers.facebook.com/apps/1799930803625948/achievements");
+/* Replace {achievement-id} with the ID of your achievement. */
+                new GraphRequest(
+                        AccessToken.getCurrentAccessToken(),
+                        "/1799930803625948/achievements",
+                        null,
+                        HttpMethod.GET,
+                        new GraphRequest.Callback() {
+                            public void onCompleted(GraphResponse response) {
+            /* Verify the achievement was published. */Log.d("a","ss"+response.getJSONObject().toString());
+                            }
+                        }
+                ).executeAsync();
+                break;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Facebook login
+
+        profile = Profile.getCurrentProfile();
+        nextActivity(profile);
+    }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+    }
+
+    protected void onStop() {
+        super.onStop();
+        //Facebook login
+        accessTokenTracker.stopTracking();
+        profileTracker.stopTracking();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
+        super.onActivityResult(requestCode, responseCode, intent);
+        //Facebook login
+        callbackManager.onActivityResult(requestCode, responseCode, intent);
+    }
+    private void nextActivity(Profile profile){
+        if(profile != null){
+            tvNombre.setText(profile.getName());
+            downloadImage.execute(profile.getProfilePictureUri(100,100).toString());
+        }
+    }
+
+}
