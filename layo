@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@android:color/holo_blue_dark"
+    android:id="@+id/inicio_relative">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@android:color/holo_blue_dark"
+        android:id="@+id/relativeLayout"
+        android:elevation="10dp">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgStarts"
+            android:src="@drawable/star"
+            android:background="@android:color/transparent"
+            android:layout_alignParentEnd="true"
+            android:nestedScrollingEnabled="true"
+            android:layout_centerVertical="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="47"
+            android:id="@+id/textView"
+            android:layout_centerVertical="true"
+            android:layout_toStartOf="@+id/imgStarts" />
+
+        <ImageButton
+            android:id="@+id/imgFacebook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/facebook_box"
+            android:background="@android:color/transparent"
+            android:layout_alignTop="@+id/imgStarts"
+            android:layout_alignParentStart="true" />
+
+    </RelativeLayout>
+
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imgSonido"
+        android:src="@drawable/volume_high"
+        android:background="@android:color/transparent"
+        android:layout_marginBottom="42dp"
+        android:layout_marginEnd="53dp"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/imgMusica" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imgMusica"
+        android:src="@drawable/music_note"
+        android:background="@android:color/transparent"
+        android:layout_alignTop="@+id/imgSonido"
+        android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imgSugerencia"
+        android:background="@android:color/transparent"
+        android:src="@drawable/lightbulb"
+        android:layout_alignTop="@+id/imgMusica"
+        android:layout_toEndOf="@+id/imgMusica"
+        android:layout_marginStart="51dp" />
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="60dp"
+        android:id="@+id/imgNave"
+        android:src="@drawable/nave10"
+        android:layout_above="@+id/imgMusica"
+        android:layout_alignStart="@+id/imgMusica"
+        android:layout_marginBottom="47dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/relativeLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginEnd="11dp"
+        android:layout_marginTop="48dp"
+        android:id="@+id/tvNombre" />
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_above="@+id/imgNave"
+        android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/imgPlay"
+        android:src="@drawable/play"
+        android:background="@android:color/holo_blue_bright"
+        android:elevation="20dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true" />
+
+    <ImageView
+        android:layout_width="100dp"
+        app:srcCompat="@drawable/com_facebook_profile_picture_blank_square"
+        android:id="@+id/ivFoto"
+        android:layout_height="100dp"
+        android:layout_below="@+id/tvNombre"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="false" />
+
+    <Button
+        android:text="score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/imgSugerencia"
+        android:layout_toEndOf="@+id/login_button"
+        android:layout_marginBottom="22dp"
+        android:id="@+id/btnScore"
+        android:onClick="onClick" />
+
+</RelativeLayout>
